@@ -1,10 +1,17 @@
 #include QMK_KEYBOARD_H
 
-// TODO figure out proper code for switching layers permanently after using a DF key
-// also need to make the split layout better (i.e. full send on the layout)
+enum layerlabels {
+    LAYOUT_NOSPLIT = 0,
+    LAYOUT_SPLIT   = 4,
+};
+
+enum layernames {
+    NOSPLIT = SAFE_RANGE,
+    SPLIT,
+};
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-	[0] = LAYOUT_ortho_5x15(
+	[LAYOUT_NOSPLIT] = LAYOUT_ortho_5x15(
             KC_GRV,   KC_1,   KC_2,     KC_3,     KC_4,   KC_5,     KC_6,    KC_7,          KC_8,     KC_9,     KC_0,     KC_MINS,  KC_EQL,   KC_BSPC,  KC_BSPC,
             KC_TAB,   KC_Q,   KC_W,     KC_E,     KC_R,   KC_T,     KC_Y,    KC_U,          KC_I,     KC_O,     KC_P,     KC_LBRC,  KC_RBRC,  KC_BSLS,  KC_DEL,
             KC_ESC,   KC_A,   KC_S,     KC_D,     KC_F,   KC_G,     KC_H,    KC_J,          KC_K,     KC_L,     KC_SCLN,  KC_QUOT,  KC_F13,   KC_F14,   KC_F15,
@@ -26,13 +33,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
             _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  KC_MPRV,  KC_VOLD,  KC_VOLU,  KC_MNXT,  _______,  _______,  _______
             ),
     [3] = LAYOUT_ortho_5x15(
-            KC_NO,  DF(0),    DF(4),    KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,    KC_NO,     KC_NO,    KC_NO,    KC_NO,    KC_NO,  KC_NO,  KC_NO,
+            KC_NO,  NOSPLIT,  SPLIT,    KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,    KC_NO,     KC_NO,    KC_NO,    KC_NO,    KC_NO,  KC_NO,  KC_NO,
             KC_NO,  RESET,    DEBUG,    KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,    KC_NO,     RGB_SPD,  RGB_SPI,  KC_NO,    KC_NO,  KC_NO,  KC_NO,
             KC_NO,  KC_NO,    KC_NO,    KC_NO,  KC_NO,  KC_NO,  AG_NORM,  AG_SWAP,  KC_NO,     RGB_HUD,  RGB_HUI,  KC_NO,    KC_NO,  KC_NO,  KC_NO,
             KC_NO,  KC_RSFT,  KC_RCTL,  KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,    KC_NO,     RGB_SAD,  RGB_SAI,  KC_NO,    KC_NO,  KC_NO,  KC_NO,
             KC_NO,  _______,  KC_NO,    KC_NO,  KC_NO,  KC_NO,  KC_NO,    RGB_TOG,  RGB_RMOD,  RGB_VAD,  RGB_VAI,  RGB_MOD,  KC_NO,  KC_NO,  KC_NO
             ),
-    [4] = LAYOUT_ortho_5x15(
+    [LAYOUT_SPLIT] = LAYOUT_ortho_5x15(
             KC_GRV,   KC_1,   KC_2,     KC_3,     KC_4,   KC_5,    KC_MINS,  KC_F13,   KC_EQL,   KC_6,    KC_7,   KC_8,     KC_9,     KC_0,     KC_BSPC,
             KC_TAB,   KC_Q,   KC_W,     KC_E,     KC_R,   KC_T,    KC_LBRC,  KC_BSLS,  KC_RBRC,  KC_Y,    KC_U,   KC_I,     KC_O,     KC_P,     KC_DEL,
             KC_ESC,   KC_A,   KC_S,     KC_D,     KC_F,   KC_G,    KC_F14,   KC_F15,   KC_F16,   KC_H,    KC_J,   KC_K,     KC_L,     KC_SCLN,  KC_QUOT,
@@ -54,7 +61,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
             _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  KC_MPRV,  KC_VOLD,  KC_VOLU,  KC_MNXT
             ),
     [7] = LAYOUT_ortho_5x15(
-            KC_NO,  DF(0),    DF(1),    KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,    KC_NO,  KC_NO,  KC_NO,    KC_NO,     KC_NO,    KC_NO,    KC_NO,
+            KC_NO,  NOSPLIT,  SPLIT,    KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,    KC_NO,  KC_NO,  KC_NO,    KC_NO,     KC_NO,    KC_NO,    KC_NO,
             KC_NO,  RESET,    DEBUG,    KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,    KC_NO,  KC_NO,  KC_NO,    KC_NO,     RGB_SPD,  RGB_SPI,  KC_NO,
             KC_NO,  KC_NO,    KC_NO,    KC_NO,  KC_NO,  KC_NO,  AG_NORM,  AG_SWAP,  KC_NO,  KC_NO,  KC_NO,    KC_NO,     RGB_HUD,  RGB_HUI,  KC_NO,
             KC_NO,  KC_RSFT,  KC_RCTL,  KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,    KC_NO,  KC_NO,  KC_NO,    KC_NO,     RGB_SAD,  RGB_SAI,  KC_NO,
@@ -62,3 +69,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
             )
 };
 
+bool process_record_user(uint16_t keycode, keyrecord_t* record) {
+    switch(keycode) {
+        case NOSPLIT:
+            if (record->event.pressed) {
+                set_single_persistent_default_layer(LAYOUT_NOSPLIT);
+            }
+            return false;
+            break;
+        case SPLIT:
+            if (record->event.pressed) {
+                set_single_persistent_default_layer(LAYOUT_SPLIT);
+            }
+            return false;
+            break;
+    }
+    return true;
+}

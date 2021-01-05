@@ -35,3 +35,6 @@
 
 #define PERMISSIVE_HOLD
 #define IGNORE_MOD_TAP_INTERRUPT
+
+#define MOUSEKEY_INTERVAL   16  // for 60hz display
+#define MOUSEKEY_MAX_SPEED  3   // account for small interval

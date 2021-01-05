@@ -6,8 +6,9 @@ enum layerlabels {
 };
 
 enum layernames {
-  QWERTY = SAFE_RANGE,
-  COLEMAK,
+  QWERTY = SAFE_RANGE,  // qwerty
+  COLEMAK,              // colemak
+  WR_WPM,               // write WPM
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -34,17 +35,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       ),
   [3] = LAYOUT_ortho_5x15(
       KC_F1,    KC_F2,    KC_F3,    KC_F4,    KC_F5,    KC_F6,    _______,  _______,  _______,  KC_F7,    KC_F8,    KC_F9,    KC_F10,   KC_F11,   KC_F12,
-      _______,  _______,  _______,  KC_MS_U,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,
-      _______,  _______,  KC_MS_L,  KC_MS_D,  KC_MS_R,  _______,  _______,  _______,  _______,  _______,  KC_MINS,  KC_EQL,   KC_LBRC,  KC_RBRC,  KC_BSLS,
-      _______,  _______,  _______,  _______,  _______,  _______,  KC_ACL0,  KC_ACL1,  KC_ACL2,  _______,  _______,  KC_MPLY,  KC_MPLY,  KC_MPLY,  KC_MPLY,
+      _______,  _______,  KC_MS_U,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  KC_ACL0,  KC_ACL1,  KC_ACL2,  _______,  _______,
+      _______,  KC_MS_L,  KC_MS_D,  KC_MS_R,  KC_ACL1,  _______,  _______,  _______,  _______,  _______,  KC_MINS,  KC_EQL,   KC_LBRC,  KC_RBRC,  KC_BSLS,
+      _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  _______,  KC_MPLY,  KC_MPLY,  KC_MPLY,  KC_MPLY,
       _______,  _______,  _______,  _______,  KC_BTN1,  KC_BTN2,  _______,  _______,  _______,  _______,  _______,  KC_MPRV,  KC_VOLD,  KC_VOLU,  KC_MNXT
       ),
   [4] = LAYOUT_ortho_5x15(
-      KC_NO,  QWERTY,   COLEMAK,  KC_NO,    KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,     KC_NO,    KC_NO,    KC_NO,
-      KC_NO,  RESET,    DEBUG,    KC_NO,    KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,     RGB_SPD,  RGB_SPI,  KC_NO,
-      KC_NO,  KC_NO,    KC_NO,    KC_NO,    KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,     RGB_HUD,  RGB_HUI,  KC_NO,
-      KC_NO,  KC_RSFT,  KC_RCTL,  KC_NO,    KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,     RGB_SAD,  RGB_SAI,  KC_NO,
-      KC_NO,  _______,  AG_NORM,  AG_SWAP,  KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,  RGB_TOG,  RGB_RMOD,  RGB_VAD,  RGB_VAI,  RGB_MOD
+      WR_WPM, QWERTY,   COLEMAK,  KC_NO,    KC_NO,    KC_NO,   KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,     KC_NO,    KC_NO,    KC_NO,
+      KC_NO,  RESET,    DEBUG,    KC_NO,    KC_NO,    KC_NO,   KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,     RGB_SPD,  RGB_SPI,  KC_NO,
+      KC_NO,  KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,   KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,     RGB_HUD,  RGB_HUI,  KC_NO,
+      KC_NO,  KC_RSFT,  KC_RCTL,  KC_NO,    KC_NO,    KC_NO,   KC_NO,  KC_NO,  KC_NO,  KC_NO,  KC_NO,    KC_NO,     RGB_SAD,  RGB_SAI,  KC_NO,
+      KC_NO,  _______,  AG_NORM,  AG_SWAP,  KC_LOCK,  _______, KC_NO,  KC_NO,  KC_NO,  KC_NO,  RGB_TOG,  RGB_RMOD,  RGB_VAD,  RGB_VAI,  RGB_MOD
       ),
 };
 
@@ -55,13 +56,31 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
         set_single_persistent_default_layer(LAYOUT_QWERTY);
       }
       return false;
-      break;
     case COLEMAK:
       if (record->event.pressed) {
         set_single_persistent_default_layer(LAYOUT_COLEMAK);
       }
       return false;
-      break;
+    case WR_WPM:
+      if (record->event.pressed) {
+        uint8_t wpm = get_current_wpm();
+        char buf[4] = {0};
+        uint8_t i = 0;
+
+        for (uint8_t n = 100; n > 0; n /= 10) {
+          if (wpm >= n) {
+            buf[i++] = (wpm / n) + '0';
+            wpm %= n;
+          }
+        }
+
+        if (*buf == 0) {
+          *buf = '0';
+        }
+
+        send_string(buf);
+      }
+      return false;
   }
   return true;
 }
